@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
       - name: Set up Node environment
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           # Node 16 Long Term Support (LTS)
           node-version: v16.19.1
@@ -37,19 +37,19 @@ jobs:
         run: npm run build
 
       - name: Check AWS configuration
-        uses: docker://amazon/aws-cli:2.0.7
+        uses: docker://amazon/aws-cli:2.11.15
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
         with:
           args: configure list
 
       - name: Deploy to S3
-        uses: docker://amazon/aws-cli:2.0.7
+        uses: docker://amazon/aws-cli:2.11.15
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
         with:
-          args: s3 sync ./build s3://${{ secrets.PORTAL_BRIDGE_BUCKET_NAME }} --delete
+          args: s3 sync ./build s3://${{ vars.PORTAL_BRIDGE_BUCKET_NAME }} --delete

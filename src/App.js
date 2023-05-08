@@ -44,6 +44,7 @@ import { useBetaContext } from "./contexts/BetaContext";
 import Portal from "./icons/portal_logo_w.svg";
 import { CLUSTER } from "./utils/consts";
 import NewsBar from "./components/NewsBar";
+import WormholeConnectBridge from "./components/WormholeConnectBridge";
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
@@ -256,9 +257,8 @@ function App() {
                 USDC Bridge
               </Link>
               <Link
-                href="/sui"
-                target="_blank"
-                rel="noopener noreferrer"
+                component={NavLink}
+                to="/sui"
                 color="inherit"
                 className={classes.link}
               >
@@ -393,6 +393,9 @@ function App() {
         </Route>
         <Route exact path="/custody-addresses">
           <CustodyAddresses />
+        </Route>
+        <Route exact path="/sui">
+          <WormholeConnectBridge />
         </Route>
         <Route>
           <Redirect to="/transfer" />

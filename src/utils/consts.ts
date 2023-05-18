@@ -77,7 +77,7 @@ export const CLUSTER: Cluster = "testnet" as Cluster;
 //   ? "mainnet"
 //   : process.env.REACT_APP_CLUSTER === "testnet"
 //   ? "testnet"
-//   : "devnet";
+//   : "devnet"; ...
 
 export interface ChainInfo {
   id: ChainId;

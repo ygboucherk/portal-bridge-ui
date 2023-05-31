@@ -406,15 +406,8 @@ async function evm(
           });
 
           const processedAddress = isEVMChain(recipientChain)
-            ? zeroPad(
-                arrayify(
-                  "7qW41TAefpWUGYJoGARjCR6cqGCUcegn7QwJrRvxqegK" /* "readableTargetAddress"! */
-                ),
-                32
-              )
-            : base58.decode(
-                "7qW41TAefpWUGYJoGARjCR6cqGCUcegn7QwJrRvxqegK" /* "readableTargetAddress"! */
-              );
+            ? zeroPad(arrayify(readableTargetAddress!), 32)
+            : base58.decode(readableTargetAddress!);
 
           console.log({ processedAddress });
 

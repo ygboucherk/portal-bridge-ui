@@ -41,6 +41,8 @@ export interface Threshold {
   isTBTC: boolean;
   source?: ChainId | undefined;
   target?: ChainId | undefined;
+  isCanonicalSource?: boolean;
+  isCanonicalTarget?: boolean;
 }
 
 export interface TransferState {

@@ -3,11 +3,12 @@ import {
   CHAIN_ID_CELO,
   CHAIN_ID_ETH,
   CHAIN_ID_SOLANA,
+  hexToNativeString,
 } from "@certusone/wormhole-sdk";
 import { getAddress } from "@ethersproject/address";
 import { Button, makeStyles, Typography } from "@material-ui/core";
 import { VerifiedUser } from "@material-ui/icons";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import { Link } from "react-router-dom";
@@ -16,17 +17,22 @@ import {
   selectTransferAmount,
   selectTransferIsSourceComplete,
   selectTransferShouldLockFields,
+  selectTransferSourceAsset,
   selectTransferSourceBalanceString,
   selectTransferSourceChain,
   selectTransferSourceError,
   selectTransferSourceParsedTokenAccount,
+  selectTransferTargetAddressHex,
+  selectTransferTargetAsset,
   selectTransferTargetChain,
+  selectTransferThreshold,
 } from "../../store/selectors";
 import {
   incrementStep,
   setAmount,
   setSourceChain,
   setTargetChain,
+  setThreshold,
 } from "../../store/transferSlice";
 import {
   BSC_MIGRATION_ASSET_MAP,
@@ -34,6 +40,8 @@ import {
   CHAINS,
   CLUSTER,
   ETH_MIGRATION_ASSET_MAP,
+  THRESHOLD_GATEWAYS,
+  THRESHOLD_TBTC_CONTRACTS,
   getIsTransferDisabled,
 } from "../../utils/consts";
 import ButtonWithLoader from "../ButtonWithLoader";
@@ -150,6 +158,56 @@ function Source() {
   const handleNextClick = useCallback(() => {
     dispatch(incrementStep());
   }, [dispatch]);
+
+  const sourceAsset = useSelector(selectTransferSourceAsset);
+  const targetAsset = useSelector(selectTransferTargetAsset);
+  const targetAddressHex = useSelector(selectTransferTargetAddressHex);
+  const thresholdData = useSelector(selectTransferThreshold);
+
+  // TBTC TOKEN DETECTION
+  useEffect(() => {
+    if (sourceChain && targetChain && sourceAsset) {
+      dispatch(
+        setThreshold(
+          THRESHOLD_TBTC_CONTRACTS[sourceChain]?.toLowerCase() ===
+            sourceAsset!.toLowerCase()
+            ? {
+                isTBTC: true,
+                source: sourceChain,
+                target: targetChain,
+                isCanonicalSource: Object.keys(THRESHOLD_GATEWAYS).includes(
+                  `${sourceChain}`
+                ),
+                isCanonicalTarget: Object.keys(THRESHOLD_GATEWAYS).includes(
+                  `${targetChain}`
+                ),
+              }
+            : { isTBTC: false }
+        )
+      );
+    }
+  }, [dispatch, sourceAsset, sourceChain, targetChain]);
+
+  useEffect(() => {
+    console.log({
+      parsedTokenAccount,
+      thresholdData,
+      hexToNative: hexToNativeString(targetAddressHex, targetChain),
+      sourceAsset,
+      sourceChain,
+      targetAddressHex,
+      targetAsset,
+      targetChain,
+    });
+  }, [
+    parsedTokenAccount,
+    sourceAsset,
+    sourceChain,
+    targetAddressHex,
+    targetAsset,
+    targetChain,
+    thresholdData,
+  ]);
 
   return (
     <>

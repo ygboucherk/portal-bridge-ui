@@ -22,6 +22,7 @@ import {
   uint8ArrayToHex,
   CHAIN_ID_SUI,
   CHAIN_ID_POLYGON,
+  CHAIN_ID_ETH,
 } from "@certusone/wormhole-sdk";
 import { completeTransferAndRegister } from "@certusone/wormhole-sdk/lib/esm/aptos/api/tokenBridge";
 import { Alert } from "@material-ui/lab";
@@ -171,14 +172,10 @@ async function evm(
   try {
     let receipt;
 
+    const isEthTarget = chainId === CHAIN_ID_ETH;
     // THRESHOLD tBTC FLOW
-    if (threshold?.isTBTC) {
-      const isCanonicalTarget = Object.keys(THRESHOLD_GATEWAYS).includes(
-        `${chainId}`
-      );
-
-      // tBTC Flow canonical target
-      if (isCanonicalTarget) {
+    if (threshold?.isTBTC && (threshold.isCanonicalTarget || isEthTarget)) {
+      if (threshold.isCanonicalTarget) {
         const targetAddress = THRESHOLD_GATEWAYS[chainId];
         const L2WormholeGateway = new Contract(
           targetAddress,
@@ -357,6 +354,7 @@ async function solana(
   signedVAA: Uint8Array,
   isNative: boolean
 ) {
+  console.log("solana redeem start", { signedVAA });
   dispatch(setIsRedeeming(true));
   try {
     if (!wallet.signTransaction) {
@@ -372,6 +370,14 @@ async function solana(
       MAX_VAA_UPLOAD_RETRIES_SOLANA
     );
     // TODO: how do we retry in between these steps
+    console.log({
+      isNative,
+      connection,
+      SOL_BRIDGE_ADDRESS,
+      SOL_TOKEN_BRIDGE_ADDRESS,
+      payerAddress,
+      signedVAA,
+    });
     const transaction = isNative
       ? await redeemAndUnwrapOnSolana(
           connection,
@@ -387,6 +393,8 @@ async function solana(
           payerAddress,
           signedVAA
         );
+
+    console.log("transaction finished", { transaction });
     const txid = await signSendAndConfirm(wallet, transaction);
     // TODO: didn't want to make an info call we didn't need, can we get the block without it by modifying the above call?
     dispatch(setRedeemTx({ id: txid, block: 1 }));

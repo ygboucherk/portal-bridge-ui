@@ -31,7 +31,7 @@ function SendConfirmationContent({
   onClose: () => void;
   onClick: () => void;
 }) {
-  const { isTBTC } = useSelector(selectTransferThreshold);
+  const { isTBTC, isCanonicalTarget } = useSelector(selectTransferThreshold);
   const sourceChain = useSelector(selectTransferSourceChain);
   const sourceParsedTokenAccount = useSelector(
     selectTransferSourceParsedTokenAccount
@@ -128,7 +128,7 @@ function SendConfirmationContent({
           originChain={originChain}
           targetAsset={targetAsset ?? undefined}
           targetChain={targetChain}
-          isTBTC={isTBTC}
+          showCanonicalTbtcMessage={isTBTC && isCanonicalTarget}
         />
         {sourceChain === CHAIN_ID_SOLANA && CLUSTER === "mainnet" && (
           <SolanaTPSWarning />

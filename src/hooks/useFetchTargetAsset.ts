@@ -24,6 +24,7 @@ import {
   queryExternalIdInjective,
   CHAIN_ID_SUI,
   getForeignAssetSui,
+  CHAIN_ID_ETH,
 } from "@certusone/wormhole-sdk";
 import {
   getForeignAssetEth as getForeignAssetEthNFT,
@@ -36,6 +37,7 @@ import { Connection } from "@solana/web3.js";
 import { LCDClient } from "@terra-money/terra.js";
 import algosdk from "algosdk";
 import { ethers } from "ethers";
+import { zeroPad } from "ethers/lib/utils.js";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useEthereumProvider } from "../contexts/EthereumProviderContext";
@@ -56,6 +58,7 @@ import {
   selectTransferOriginAsset,
   selectTransferOriginChain,
   selectTransferTargetChain,
+  selectTransferThreshold,
 } from "../store/selectors";
 import { setTargetAsset as setTransferTargetAsset } from "../store/transferSlice";
 import {
@@ -72,6 +75,7 @@ import {
   NATIVE_NEAR_WH_ADDRESS,
   NATIVE_NEAR_PLACEHOLDER,
   XPLA_LCD_CLIENT_CONFIG,
+  THRESHOLD_TBTC_CONTRACTS,
 } from "../utils/consts";
 import {
   getForeignAssetNear,
@@ -101,6 +105,7 @@ function useFetchTargetAsset(nft?: boolean) {
   const targetChain = useSelector(
     nft ? selectNFTTargetChain : selectTransferTargetChain
   );
+  const { isTBTC, isCanonicalSource } = useSelector(selectTransferThreshold);
   const setTargetAsset = nft ? setNFTTargetAsset : setTransferTargetAsset;
   const { provider, evmChainId } = useEthereumProvider(targetChain);
   const correctEvmNetwork = getEvmChainId(targetChain);
@@ -356,6 +361,7 @@ function useFetchTargetAsset(nft?: boolean) {
         dispatch(setTargetAsset(fetchDataWrapper()));
         try {
           const connection = new Connection(SOLANA_HOST, "confirmed");
+
           const asset = await (nft
             ? getForeignAssetSolNFT(
                 SOL_NFT_BRIDGE_ADDRESS,
@@ -363,12 +369,23 @@ function useFetchTargetAsset(nft?: boolean) {
                 hexToUint8Array(originAsset),
                 arrayify(BigNumber.from(tokenId || "0"))
               )
+            : isTBTC && isCanonicalSource
+            ? getForeignAssetSolana(
+                connection,
+                SOL_TOKEN_BRIDGE_ADDRESS,
+                CHAIN_ID_ETH,
+                zeroPad(
+                  hexToUint8Array(THRESHOLD_TBTC_CONTRACTS[CHAIN_ID_ETH]),
+                  32
+                )
+              )
             : getForeignAssetSolana(
                 connection,
                 SOL_TOKEN_BRIDGE_ADDRESS,
                 originChain,
                 hexToUint8Array(originAsset)
               ));
+
           if (!cancelled) {
             dispatch(
               setTargetAsset(
@@ -656,6 +673,8 @@ function useFetchTargetAsset(nft?: boolean) {
     argsMatchLastSuccess,
     setArgs,
     nearAccountId,
+    isTBTC,
+    isCanonicalSource,
   ]);
 }
 

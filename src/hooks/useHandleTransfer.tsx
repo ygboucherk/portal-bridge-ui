@@ -44,7 +44,7 @@ import { Connection } from "@solana/web3.js";
 import algosdk from "algosdk";
 import { Types } from "aptos";
 import { BigNumber, Contract, Signer } from "ethers";
-import { arrayify, parseUnits, zeroPad } from "ethers/lib/utils";
+import { arrayify, base58, parseUnits, zeroPad } from "ethers/lib/utils";
 import { useSnackbar } from "notistack";
 import { useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -282,7 +282,6 @@ async function aptos(
 }
 
 // Threshold normalize amounts
-
 function normalizeAmount(amount: BigNumber, decimals: number): BigNumber {
   if (decimals > 8) {
     amount = amount.div(BigNumber.from(10).pow(decimals - 8));
@@ -313,26 +312,22 @@ async function evm(
   readableTargetAddress?: string
 ) {
   dispatch(setIsSending(true));
-
   try {
     // THRESHOLD TBTC FLOW
     const threshold = thresholdData;
+    const isEthSource = chainId === CHAIN_ID_ETH;
+    const shouldUseThresholdFlow =
+      threshold?.isTBTC &&
+      ((isEthSource && threshold.isCanonicalTarget) ||
+        threshold.isCanonicalSource);
 
-    if (threshold?.isTBTC) {
-      const isEthSource = chainId === CHAIN_ID_ETH;
-      const isEthTarget = recipientChain === CHAIN_ID_ETH;
-      const isCanonicalSource = Object.keys(THRESHOLD_GATEWAYS).includes(
-        `${chainId}`
-      );
-      const isCanonicalTarget = Object.keys(THRESHOLD_GATEWAYS).includes(
-        `${recipientChain}`
-      );
-
+    if (shouldUseThresholdFlow) {
+      console.log("threshold flow");
       const baseAmountParsed = parseUnits(amount, decimals);
       const relayerFeeParsed = parseUnits(relayerFee || "0", decimals);
       const transferAmountParsed = baseAmountParsed.add(relayerFeeParsed);
 
-      if (isEthSource && isCanonicalTarget) {
+      if (isEthSource && threshold.isCanonicalTarget) {
         const targetAddress = THRESHOLD_GATEWAYS[recipientChain];
         console.log("Ethereum to Canonical");
 
@@ -380,9 +375,16 @@ async function evm(
         );
       }
 
-      if (isCanonicalSource && (isCanonicalTarget || isEthTarget)) {
+      if (threshold.isCanonicalSource) {
         const sourceAddress = THRESHOLD_GATEWAYS[chainId].toLowerCase();
-        console.log("Canonical to ", isCanonicalTarget ? "Canonical" : "ETH");
+        console.log(
+          "Canonical to ",
+          threshold.isCanonicalTarget
+            ? "Canonical"
+            : isEthSource
+            ? "ETH"
+            : "Non-Canonical"
+        );
 
         try {
           const L2WormholeGateway = new Contract(
@@ -396,10 +398,30 @@ async function evm(
             decimals
           );
 
+          console.log({
+            amountNormalizeAmount,
+            readableTargetAddress,
+            recipientChain,
+            isEVMChain: isEVMChain(recipientChain),
+          });
+
+          const processedAddress = isEVMChain(recipientChain)
+            ? zeroPad(
+                arrayify(
+                  "7qW41TAefpWUGYJoGARjCR6cqGCUcegn7QwJrRvxqegK" /* "readableTargetAddress"! */
+                ),
+                32
+              )
+            : base58.decode(
+                "7qW41TAefpWUGYJoGARjCR6cqGCUcegn7QwJrRvxqegK" /* "readableTargetAddress"! */
+              );
+
+          console.log({ processedAddress });
+
           const estimateGas = await L2WormholeGateway.estimateGas.sendTbtc(
             amountNormalizeAmount,
             recipientChain,
-            zeroPad(arrayify(readableTargetAddress!), 32),
+            processedAddress,
             THRESHOLD_ARBITER_FEE,
             THRESHOLD_NONCE
           );
@@ -415,16 +437,24 @@ async function evm(
             ...(chainId === CHAIN_ID_POLYGON && { type: 0 }),
           };
 
+          console.log({
+            estimateGas,
+            gasLimit,
+          });
+
+          console.log("pre sendTBTC");
           const tx = await L2WormholeGateway.sendTbtc(
             amountNormalizeAmount,
             recipientChain,
-            zeroPad(arrayify(readableTargetAddress!), 32),
+            processedAddress,
             THRESHOLD_ARBITER_FEE,
             THRESHOLD_NONCE,
             overrides
           );
+          console.log("post sendTBTC");
 
           const receipt = await tx.wait();
+          console.log({ receipt });
 
           dispatch(
             setTransferTx({
@@ -445,6 +475,11 @@ async function evm(
             getTokenBridgeAddressForChain(chainId)
           );
 
+          console.log({
+            sequence,
+            emitterAddress,
+          });
+
           await fetchSignedVAA(
             chainId,
             emitterAddress,
@@ -456,7 +491,9 @@ async function evm(
           console.error(parseError(e));
         }
       }
-    } else {
+    }
+    // Normal portal bridge transaction flow
+    else {
       const baseAmountParsed = parseUnits(amount, decimals);
       const feeParsed = parseUnits(relayerFee || "0", decimals);
       const transferAmountParsed = baseAmountParsed.add(feeParsed);

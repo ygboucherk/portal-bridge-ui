@@ -602,6 +602,12 @@ export default function Recovery() {
           isTBTC: true,
           source: parsedPayload.originChain as ChainId,
           target: parsedPayload.targetChain as ChainId,
+          isCanonicalSource: Object.keys(THRESHOLD_GATEWAYS).includes(
+            `${parsedPayload.originChain}`
+          ),
+          isCanonicalTarget: Object.keys(THRESHOLD_GATEWAYS).includes(
+            `${parsedPayload.targetChain}`
+          ),
         });
       }
     } else {

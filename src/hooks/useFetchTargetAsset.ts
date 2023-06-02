@@ -330,6 +330,9 @@ function useFetchTargetAsset(nft?: boolean) {
                 hexToUint8Array(originAsset)
               ));
           if (!cancelled) {
+            if (asset === ethers.constants.AddressZero) {
+              
+            }
             dispatch(
               setTargetAsset(
                 receiveDataWrapper({

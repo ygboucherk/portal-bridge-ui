@@ -13,7 +13,6 @@ import {
   KeyboardArrowRight,
   RemoveCircleOutline,
 } from "@material-ui/icons";
-import React from "react";
 import {
   useExpanded,
   useGlobalFilter,
@@ -24,11 +23,18 @@ import {
 } from "react-table";
 import TablePaginationActions from "./TablePaginationActions";
 
-const stopProp = (e) => {
+const stopProp = (e: Event) => {
   e.stopPropagation();
 };
 
-const EnhancedTable = ({ columns, data, skipPageReset, initialState = {} }) => {
+export type EnhancedTableProps = {
+  columns: any;
+  data: any;
+  skipPageReset?: boolean;
+  initialState?: any;
+}
+
+const EnhancedTable = ({ columns, data, skipPageReset, initialState = {} }: EnhancedTableProps) => {
   const {
     getTableProps,
     headerGroups,

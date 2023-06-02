@@ -21,7 +21,7 @@ import {
   InjectedWallet,
   WalletConnectLegacyWallet,
 } from "@xlabs-libs/wallet-aggregator-evm";
-import { WalletContextProvider } from "@xlabs-libs/wallet-aggregator-react";
+import { AvailableWalletsMapBuilderFn, WalletContextProvider } from "@xlabs-libs/wallet-aggregator-react";
 import { SnackbarProvider } from "notistack";
 import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
@@ -45,7 +45,7 @@ const AGGREGATOR_WALLETS_BUILDER = async () => {
     [CHAIN_ID_ALGORAND]: [
       new MyAlgoWallet(),
       new PeraWallet(),
-      new DeflyWallet(),
+      new DeflyWallet({}),
       new AlgorandLedgerWallet(),
     ],
     [CHAIN_ID_ETH]: [new InjectedWallet(), new WalletConnectLegacyWallet()],
@@ -66,7 +66,7 @@ ReactDOM.render(
         <CssBaseline />
         <ErrorBoundary>
           <SnackbarProvider maxSnack={3}>
-            <WalletContextProvider wallets={AGGREGATOR_WALLETS_BUILDER}>
+            <WalletContextProvider wallets={AGGREGATOR_WALLETS_BUILDER as AvailableWalletsMapBuilderFn}>
               <BetaContextProvider>
                 <HashRouter>
                   <BackgroundImage />

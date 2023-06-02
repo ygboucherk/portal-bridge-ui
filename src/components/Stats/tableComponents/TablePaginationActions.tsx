@@ -15,24 +15,31 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const TablePaginationActions = (props) => {
+export type TablePaginationActionsProps = {
+  count: number;
+  page: number;
+  rowsPerPage: number;
+  onPageChange: (event: any, newPage: number) => void;
+}
+
+const TablePaginationActions = (props: TablePaginationActionsProps) => {
   const classes = useStyles();
   const theme = useTheme();
   const { count, page, rowsPerPage, onPageChange } = props;
 
-  const handleFirstPageButtonClick = (event) => {
+  const handleFirstPageButtonClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
     onPageChange(event, 0);
   };
 
-  const handleBackButtonClick = (event) => {
+  const handleBackButtonClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
     onPageChange(event, page - 1);
   };
 
-  const handleNextButtonClick = (event) => {
+  const handleNextButtonClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
     onPageChange(event, page + 1);
   };
 
-  const handleLastPageButtonClick = (event) => {
+  const handleLastPageButtonClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
     onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
   };
 

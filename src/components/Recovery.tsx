@@ -406,9 +406,6 @@ function RelayerRecovery({
   const [selectedRelayer, setSelectedRelayer] = useState<Relayer | null>(null);
   const [isAttemptingToSchedule, setIsAttemptingToSchedule] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
-
-  console.log(parsedPayload, relayerInfo, "in recovery relayer");
-
   const fee =
     (parsedPayload && parsedPayload.fee && parseInt(parsedPayload.fee)) || null;
   //This check is probably more sophisticated in the future. Possibly a net call.

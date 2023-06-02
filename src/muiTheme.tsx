@@ -1,5 +1,5 @@
 import { createTheme, responsiveFontSizes } from "@material-ui/core";
-import bg from "../src/images/bg.svg";
+import bg from "./images/bg.svg";
 import SuisseBPIntlBold from "./fonts/SuisseBPIntlBold.woff2";
 
 export const COLORS = {
@@ -61,10 +61,10 @@ export const theme = responsiveFontSizes(
         fontWeight: "bold",
       },
       h2: {
-        fontWeight: "200",
+        fontWeight: 200,
       },
       h4: {
-        fontWeight: "600",
+        fontWeight: 600,
         fontFamily: "Suisse BP Intl, sans-serif",
         letterSpacing: -1.02,
       },
@@ -72,7 +72,7 @@ export const theme = responsiveFontSizes(
     overrides: {
       MuiCssBaseline: {
         "@global": {
-          "@font-face": [suisse],
+          "@font-face": [suisse as any],
           body: {
             overscrollBehaviorY: "none",
             backgroundImage: `url(${bg})`,
@@ -116,13 +116,13 @@ export const theme = responsiveFontSizes(
             borderBottomRightRadius: "28px",
           },
         },
-      },
+      }/*,
       MuiAlert: {
         root: {
           borderRadius: "8px",
           border: "1px solid",
         },
-      },
+      },*/,
       MuiButton: {
         root: {
           borderRadius: "22px",

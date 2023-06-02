@@ -5,7 +5,7 @@ const BetaContext = React.createContext<boolean>(false);
 export const BetaContextProvider = ({
   children,
 }: {
-  children: ReactChildren;
+  children: JSX.Element | ReactChildren;
 }) => {
   const [isBetaEnabled, setIsBetaEnabled] = useState(false);
 

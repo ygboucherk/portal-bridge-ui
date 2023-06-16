@@ -29,17 +29,8 @@ const ConnectWalletButton = ({ chainId }: { chainId: ChainId }) => {
         await w.connect();
 
         const wAddress = w.getAddress();
-        const isSanctioned = await getIsSanctioned(chainId, CLUSTER, wAddress);
-
-        if (isSanctioned) {
-          console.error("sanctioned wallet detected", wAddress);
-          setError(
-            new Error("You cannot operate with this address on Portal Bridge.")
-          );
-        } else {
-          changeWallet(w);
-          setError(undefined);
-        }
+        changeWallet(w);
+        setError(undefined);
       } catch (err: any) {
         console.error(err);
         setError(err);
